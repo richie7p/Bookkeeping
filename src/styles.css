@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader", "Iowan Old Style", Palatino, serif;
+
+  --color-background: #f3efe6;
+  --color-foreground: #1c1b18;
+  --color-card: #faf8f3;
+  --color-card-foreground: #1c1b18;
+  --color-popover: #faf8f3;
+  --color-popover-foreground: #1c1b18;
+  --color-primary: #24352c;
+  --color-primary-foreground: #f3efe6;
+  --color-secondary: #e7e1d4;
+  --color-secondary-foreground: #24352c;
+  --color-muted: #ebe6db;
+  --color-muted-foreground: #6f6b62;
+  --color-accent: #e7e1d4;
+  --color-accent-foreground: #1c1b18;
+  --color-destructive: #8f3e34;
+  --color-destructive-foreground: #faf8f3;
+  --color-border: #ddd6c8;
+  --color-input: #d8d0c2;
+  --color-ring: #24352c;
+  --color-income: #2f5d45;
+  --color-expense: #8f3e34;
+  --color-chart-1: #3d5c4e;
+  --color-chart-2: #6d5a46;
+  --color-chart-3: #4a5c66;
+  --color-chart-4: #7a5348;
+  --color-chart-5: #5a6340;
+  --color-chart-6: #4d5852;
+  --color-chart-7: #7a6a4e;
+  --color-chart-8: #5c5550;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius: 0.75rem;
+
+  --shadow-border:
+    0 0 0 1px rgb(28 27 24 / 0.06),
+    0 1px 2px -1px rgb(28 27 24 / 0.06),
+    0 2px 8px 0 rgb(28 27 24 / 0.04);
+  --shadow-border-hover:
+    0 0 0 1px rgb(28 27 24 / 0.08),
+    0 1px 2px -1px rgb(28 27 24 / 0.08),
+    0 8px 20px -6px rgb(28 27 24 / 0.08);
+}
+
+:root {
+  --scale-press: 0.96;
+  --motion-stagger: 40ms;
+  --motion-micro: 80ms;
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-medium: 350ms;
+  --motion-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-scale-modal: 0.96;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+@layer components {
+  .pressable {
+    transition-property: scale, background-color, color, box-shadow, opacity;
+    transition-duration: var(--motion-quick);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .pressable:active:not(:disabled) {
+    scale: var(--scale-press);
+  }
+
+  .shadow-border {
+    box-shadow: var(--shadow-border);
+  }
+
+  .shadow-border-hover:hover {
+    box-shadow: var(--shadow-border-hover);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+@keyframes folio-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes folio-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes folio-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(var(--motion-scale-modal));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes folio-modal-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(var(--motion-scale-modal));
+  }
+}
+
+@keyframes folio-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-overlay[data-state="open"] {
+  animation: folio-fade-in var(--motion-fast) var(--ease-smooth-out);
+}
+
+.dialog-overlay[data-state="closed"] {
+  animation: folio-fade-out var(--motion-quick) var(--ease-out);
+}
+
+.dialog-content[data-state="open"] {
+  animation: folio-modal-in var(--motion-fast) var(--ease-smooth-out);
+}
+
+.dialog-content[data-state="closed"] {
+  animation: folio-modal-out var(--motion-quick) var(--ease-out);
+}
+
+.stagger-in > * {
+  animation: folio-rise var(--motion-slow) var(--ease-smooth-out) both;
+}
+
+.stagger-in > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-in > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.stagger-in > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.stagger-in > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.stagger-in > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.stagger-in > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-stagger: 0ms;
+    --motion-micro: 0ms;
+    --motion-quick: 0ms;
+    --motion-fast: 0ms;
+    --motion-medium: 0ms;
+    --motion-slow: 0ms;
+  }
+
+  .stagger-in > *,
+  .dialog-overlay,
+  .dialog-content {
+    animation: none !important;
+  }
+
+  .pressable:active:not(:disabled) {
+    scale: 1;
+  }
+}
