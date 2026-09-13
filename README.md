@@ -1,5 +1,9 @@
 # Folio 記帳
 
+**繁體中文** | [English](README.en.md)
+
+**[線上展示 / Live Demo](https://cinder-green-yellow-cinder.grok.me/)**
+
 離線優先的個人記帳工具。以「記一筆」為核心，按日流水帳查看支出、收入與轉帳，並即時重算帳戶餘額。
 
 資料只存在瀏覽器本機（`localStorage`），不需註冊、不上傳伺服器。
@@ -29,8 +33,8 @@
 需要 [Node.js](https://nodejs.org/) 22 以上。
 
 ```bash
-git clone https://github.com/richie7p/cinder-green-yellow-cinder.git
-cd cinder-green-yellow-cinder
+git clone https://github.com/richie7p/Bookkeeping.git
+cd Bookkeeping
 npm install
 npm run dev
 ```
