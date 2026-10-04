@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { accountBalances, netWorth } from "./compute";
 import { parseAmount, parseSignedAmount } from "./format";
-import { exportBackup, parseBackup } from "./backup";
+import { exportBackup, parseBackup, ledgerSchema, MAX_BACKUP_BYTES } from "./backup";
 import { demoAccounts, demoTransactions } from "./demo";
 import type { Transaction } from "./types";
 const accounts = demoAccounts();
@@ -37,4 +37,40 @@ test("backup validation rejects duplicates, invalid dates, references and versio
     { ...valid, transactions: [tx({}), tx({})] }, { ...valid, transactions: [tx({ amount: 0.1 })] }]) {
     assert.throws(() => parseBackup(JSON.stringify(value)));
   }
+});
+
+test("oversized but structurally valid ledgers cannot emit an unrestorable backup", () => {
+  const data = { accounts, transactions: Array.from({ length: 3000 }, (_, i) => tx({ id: String(i), note: "x".repeat(2000) })) };
+  assert.equal(ledgerSchema.safeParse(data).success, true);
+  assert.throws(() => exportBackup(data), /5 MB/);
+  assert.throws(() => parseBackup(JSON.stringify({ version: 1, ...data })), /5 MB/);
+});
+
+test("UTF-8 byte limit includes multibyte notes and permits an exact-limit round trip", () => {
+  const data = { accounts, transactions: Array.from({ length: 2600 }, (_, i) => tx({ id: String(i), note: "x".repeat(1800) })) };
+  let remaining = MAX_BACKUP_BYTES - new TextEncoder().encode(JSON.stringify({ version: 1, ...data })).length;
+  assert.ok(remaining > 0);
+  for (const row of data.transactions) {
+    const extra = Math.min(remaining, 2000 - row.note.length); row.note += "x".repeat(extra); remaining -= extra;
+  }
+  assert.equal(remaining, 0);
+  const output = exportBackup(data);
+  assert.equal(new TextEncoder().encode(output).length, MAX_BACKUP_BYTES);
+  assert.deepEqual(parseBackup(output), data);
+  data.transactions[0]!.note = data.transactions[0]!.note.replace("x", "帳");
+  assert.throws(() => exportBackup(data), /5 MB/);
+});
+
+test("safe individual amounts cannot create unsafe ledger aggregates on import", () => {
+  const data = { accounts, transactions: Array.from({ length: 10000 }, (_, i) => tx({ id: String(i), amount: 1_000_000_000_000 })) };
+  assert.equal(ledgerSchema.safeParse(data).success, false);
+  assert.throws(() => parseBackup(JSON.stringify({ version: 1, ...data })), /安全整數/);
+});
+
+test("BigInt intermediate balances preserve cancellation and reject unsafe final totals", () => {
+  const large = [{ id: "cash", name: "synthetic", kind: "cash" as const, openingBalance: Number.MAX_SAFE_INTEGER }];
+  assert.equal(accountBalances(large, [tx({ type: "income", categoryId: "salary", amount: 2 }), tx({ id: "out", amount: 2 })]).cash, Number.MAX_SAFE_INTEGER);
+  assert.equal(netWorth({ a: Number.MAX_SAFE_INTEGER, b: 2, c: -Number.MAX_SAFE_INTEGER }), 2);
+  assert.throws(() => accountBalances(large, [tx({ type: "income", categoryId: "salary", amount: 1 })]), /安全整數/);
+  assert.throws(() => netWorth({ a: Number.MAX_SAFE_INTEGER, b: 1 }), /安全整數/);
 });

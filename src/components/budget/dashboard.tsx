@@ -588,8 +588,10 @@ export function Dashboard() {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (pendingDeleteTx) deleteTransaction(pendingDeleteTx.id);
+              onClick={(event) => {
+                if (pendingDeleteTx && !deleteTransaction(pendingDeleteTx.id)) {
+                  event.preventDefault(); toast.error(useStorageStatus.getState().warning); return;
+                }
                 setPendingDeleteTx(null);
               }}
             >
@@ -616,11 +618,13 @@ export function Dashboard() {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
+              onClick={(event) => {
                 if (!pendingDeleteAccount) return;
                 const ok = deleteAccount(pendingDeleteAccount.id);
                 if (!ok) {
-                  toast.error("帳戶仍有紀錄，或這是最後一個帳戶");
+                  event.preventDefault();
+                  toast.error(useStorageStatus.getState().warning ?? "帳戶仍有紀錄，或這是最後一個帳戶");
+                  return;
                 }
                 setPendingDeleteAccount(null);
               }}

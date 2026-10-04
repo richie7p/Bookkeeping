@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { categoriesFor, categoryById } from "@/lib/budget/categories";
 import { parseAmount, todayIso } from "@/lib/budget/format";
-import { useBudgetStore } from "@/lib/budget/store";
+import { useBudgetStore, useStorageStatus } from "@/lib/budget/store";
 import type { Transaction, TxType } from "@/lib/budget/types";
 import { cn } from "@/lib/utils";
 
@@ -117,10 +117,10 @@ export function TransactionDialog({ open, onOpenChange, editing, defaultMonth }:
         date,
       };
       if (editing) {
-        updateTransaction(editing.id, payload);
+        if (!updateTransaction(editing.id, payload)) { toast.error(useStorageStatus.getState().warning); return; }
         toast.success("已更新轉帳");
       } else {
-        addTransaction(payload);
+        if (!addTransaction(payload)) { toast.error(useStorageStatus.getState().warning); return; }
         toast.success("已記一筆轉帳");
       }
       onOpenChange(false);
@@ -141,10 +141,10 @@ export function TransactionDialog({ open, onOpenChange, editing, defaultMonth }:
       date,
     };
     if (editing) {
-      updateTransaction(editing.id, payload);
+      if (!updateTransaction(editing.id, payload)) { toast.error(useStorageStatus.getState().warning); return; }
       toast.success("已更新帳目");
     } else {
-      addTransaction(payload);
+      if (!addTransaction(payload)) { toast.error(useStorageStatus.getState().warning); return; }
       toast.success("已記一筆");
     }
     onOpenChange(false);
