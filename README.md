@@ -35,7 +35,7 @@
 ```bash
 git clone https://github.com/richie7p/Bookkeeping.git
 cd Bookkeeping
-npm install
+npm ci
 npm run dev
 ```
 
@@ -79,3 +79,8 @@ src/
 ## License
 
 個人專案，僅供學習與自用。
+
+
+## 技術稽核修正與測試
+
+[PDF 對照、重現步驟與驗證限制](docs/AUDIT-FOLLOWUP.md)

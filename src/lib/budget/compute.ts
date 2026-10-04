@@ -4,11 +4,13 @@ export function accountBalances(
   accounts: Account[],
   transactions: Transaction[],
 ): Record<string, number> {
-  const map: Record<string, number> = {};
+  const map: Record<string, number> = Object.create(null);
   for (const account of accounts) {
     map[account.id] = account.openingBalance;
   }
   for (const tx of transactions) {
+    if (!Object.hasOwn(map, tx.accountId) || !Number.isSafeInteger(tx.amount) || tx.amount <= 0) continue;
+    if (tx.type === "transfer" && (!tx.toAccountId || !Object.hasOwn(map, tx.toAccountId))) continue;
     if (tx.type === "income") {
       map[tx.accountId] = (map[tx.accountId] ?? 0) + tx.amount;
     } else if (tx.type === "expense") {
