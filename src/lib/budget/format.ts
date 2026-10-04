@@ -53,16 +53,16 @@ export function inMonth(date: string, month: string): boolean {
 
 export function parseAmount(raw: string): number | null {
   const cleaned = raw.replace(/[,$\sNT元]/gi, "");
-  if (!cleaned) return null;
+  if (!/^-?\d+(?:\.\d+)?$/.test(cleaned)) return null;
   const n = Number(cleaned);
-  if (!Number.isFinite(n) || n <= 0) return null;
+  if (!Number.isSafeInteger(Math.round(n)) || Math.abs(n) > 1_000_000_000_000 || Math.round(n) <= 0) return null;
   return Math.round(n);
 }
 
 export function parseSignedAmount(raw: string): number | null {
   const cleaned = raw.replace(/[,$\sNT元]/gi, "");
-  if (!cleaned) return null;
+  if (!/^-?\d+(?:\.\d+)?$/.test(cleaned)) return null;
   const n = Number(cleaned);
-  if (!Number.isFinite(n)) return null;
+  if (!Number.isSafeInteger(Math.round(n)) || Math.abs(n) > 1_000_000_000_000) return null;
   return Math.round(n);
 }

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { BackupControls } from "./backup-controls";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeftRight,
   ChevronLeft,
@@ -46,7 +47,7 @@ import {
   monthLabel,
   shiftMonth,
 } from "@/lib/budget/format";
-import { useBudgetStore } from "@/lib/budget/store";
+import { useBudgetStore, useStorageStatus } from "@/lib/budget/store";
 import type { Account, AccountKind, Transaction, TxType } from "@/lib/budget/types";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +93,11 @@ const KIND_ICON: Record<AccountKind, typeof Wallet> = {
 };
 
 export function Dashboard() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    void Promise.resolve(useBudgetStore.persist.rehydrate()).finally(() => setReady(true));
+  }, []);
+  const storageWarning = useStorageStatus((s) => s.warning);
   const transactions = useBudgetStore((s) => s.transactions);
   const accounts = useBudgetStore((s) => s.accounts);
   const deleteTransaction = useBudgetStore((s) => s.deleteTransaction);
@@ -184,7 +190,7 @@ export function Dashboard() {
   const overspent = remaining < 0;
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-5 pb-[max(5.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <div inert={!ready} data-hydrated={ready} className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-5 pb-[max(5.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-2xl leading-tight font-medium tracking-tight">Folio</p>
@@ -218,6 +224,8 @@ export function Dashboard() {
           </Button>
         </div>
       </header>
+      <BackupControls />
+      {storageWarning && <p role="alert" className="mt-3 text-sm text-expense">{storageWarning}</p>}
 
       <section className="stagger-in mt-6 grid gap-3">
         <article className="rounded-xl bg-card p-5 shadow-border">
@@ -580,8 +588,10 @@ export function Dashboard() {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (pendingDeleteTx) deleteTransaction(pendingDeleteTx.id);
+              onClick={(event) => {
+                if (pendingDeleteTx && !deleteTransaction(pendingDeleteTx.id)) {
+                  event.preventDefault(); toast.error(useStorageStatus.getState().warning); return;
+                }
                 setPendingDeleteTx(null);
               }}
             >
@@ -608,11 +618,13 @@ export function Dashboard() {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
+              onClick={(event) => {
                 if (!pendingDeleteAccount) return;
                 const ok = deleteAccount(pendingDeleteAccount.id);
                 if (!ok) {
-                  toast.error("帳戶仍有紀錄，或這是最後一個帳戶");
+                  event.preventDefault();
+                  toast.error(useStorageStatus.getState().warning ?? "帳戶仍有紀錄，或這是最後一個帳戶");
+                  return;
                 }
                 setPendingDeleteAccount(null);
               }}

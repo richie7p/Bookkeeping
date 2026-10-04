@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { ACCOUNT_KIND_LABEL } from "@/lib/budget/categories";
 import { parseSignedAmount } from "@/lib/budget/format";
-import { useBudgetStore } from "@/lib/budget/store";
+import { useBudgetStore, useStorageStatus } from "@/lib/budget/store";
 import type { Account, AccountKind } from "@/lib/budget/types";
 
 type Props = {
@@ -66,10 +66,10 @@ export function AccountDialog({ open, onOpenChange, editing }: Props) {
     }
     const payload = { name: trimmed, kind, openingBalance: openingAmt };
     if (editing) {
-      updateAccount(editing.id, payload);
+      if (!updateAccount(editing.id, payload)) { toast.error(useStorageStatus.getState().warning); return; }
       toast.success("已更新帳戶");
     } else {
-      addAccount(payload);
+      if (!addAccount(payload)) { toast.error(useStorageStatus.getState().warning); return; }
       toast.success("已新增帳戶");
     }
     onOpenChange(false);
